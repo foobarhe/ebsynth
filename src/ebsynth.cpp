@@ -260,6 +260,7 @@ int main(int argc,char** argv)
     printf("  -stopthreshold <value>\n");
     printf("  -extrapass3x3\n");
     printf("  -backend [cpu|cuda]\n");
+    printf("  -verbose\n");
     printf("\n");
     return 1;
   }
@@ -294,6 +295,7 @@ int main(int argc,char** argv)
   int numPatchMatchIters = 4;
   int stopThreshold = 5;
   int extraPass3x3 = 0;
+  bool verbose = false;
   int backend = ebsynthBackendAvailable(EBSYNTH_BACKEND_CUDA) ? EBSYNTH_BACKEND_CUDA : EBSYNTH_BACKEND_CPU;
 
   {
@@ -380,6 +382,11 @@ int main(int argc,char** argv)
       else if (argi<args.size() && args[argi]=="-extrapass3x3")
       {
         extraPass3x3 = 1;
+        argi++;
+      }
+      else if (argi<args.size() && args[argi]=="-verbose")
+      {
+        verbose = true;
         argi++;
       }
       else
@@ -517,14 +524,17 @@ int main(int argc,char** argv)
 
   std::vector<unsigned char> output(targetWidth*targetHeight*numStyleChannelsTotal);
 
-  printf("uniformity: %.0f\n",uniformityWeight);
-  printf("patchsize: %d\n",patchSize);
-  printf("pyramidlevels: %d\n",numPyramidLevels);
-  printf("searchvoteiters: %d\n",numSearchVoteIters);
-  printf("patchmatchiters: %d\n",numPatchMatchIters);
-  printf("stopthreshold: %d\n",stopThreshold);
-  printf("extrapass3x3: %s\n",extraPass3x3!=0?"yes":"no");
-  printf("backend: %s\n",backendToString(backend).c_str());
+  if (verbose == true) {
+    printf("uniformity: %.0f\n",uniformityWeight);
+    printf("patchsize: %d\n",patchSize);
+    printf("pyramidlevels: %d\n",numPyramidLevels);
+    printf("searchvoteiters: %d\n",numSearchVoteIters);
+    printf("patchmatchiters: %d\n",numPatchMatchIters);
+    printf("stopthreshold: %d\n",stopThreshold);
+    printf("extrapass3x3: %s\n",extraPass3x3!=0?"yes":"no");
+    printf("backend: %s\n",backendToString(backend).c_str());
+    printf("verbose: %s\n",verbose==true?"yes":"no");
+  }
 
   ebsynthRun(backend,
              numStyleChannelsTotal,
@@ -552,7 +562,9 @@ int main(int argc,char** argv)
 
   stbi_write_png(outputFileName.c_str(),targetWidth,targetHeight,numStyleChannelsTotal,output.data(),numStyleChannelsTotal*targetWidth);
 
-  printf("result was written to %s\n",outputFileName.c_str());
+  if (verbose) {
+    printf("result was written to %s\n",outputFileName.c_str());
+  }
 
   stbi_image_free(sourceStyleData);
 
